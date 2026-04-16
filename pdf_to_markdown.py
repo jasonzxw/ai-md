@@ -24,12 +24,30 @@ import os
 import re
 import sys
 import pathlib
+import unicodedata
 
 import pymupdf
 import pymupdf4llm
 
 
 PDF_EXTENSIONS = {'.pdf'}
+
+
+def normalize_text(text: str) -> str:
+    """
+    修复 PDF 提取中常见的编码问题：
+    1. U+FFFD 替换字符 → 空格（PDF 特殊空格编码无法解析时产生）
+    2. Kangxi Radicals / CJK Radicals Supplement → 标准汉字
+       例如 ⽚→片, ⼯→工, ⻜→飞
+    3. 清理连续多余空格
+    """
+    text = text.replace('\ufffd', ' ')
+
+    text = unicodedata.normalize('NFKC', text)
+
+    text = re.sub(r' {3,}', '  ', text)
+
+    return text
 
 
 def parse_page_range(page_str: str, total_pages: int) -> list:
@@ -205,6 +223,7 @@ def convert_single_pdf(pdf_path: str, output_dir: str,
         if os.path.isdir(images_dir) and not os.listdir(images_dir):
             os.rmdir(images_dir)
 
+    md_text = normalize_text(md_text)
     pathlib.Path(md_filepath).write_text(md_text, encoding="utf-8")
     return md_filepath
 
