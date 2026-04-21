@@ -1,0 +1,38 @@
+---
+description: MyBatis Mapper XML 编码规范
+globs: "**/mybatis/**/*.xml"
+alwaysApply: false
+---
+
+# MyBatis XML 规范
+
+## 安全（强制）
+- 参数一律使用 `#{}`，**严禁 `${}`**（防 SQL 注入）
+- 唯一例外：表名/列名等不可由用户控制的动态值
+
+## 结构
+- 每个 XML 必须定义 `<resultMap id="BaseResultMap">` 和 `<sql id="Base_Column_List">`
+- SELECT 查询使用 `<include refid="Base_Column_List"/>`，不写 `SELECT *`
+- `namespace` 必须与 DAO 接口全限定名一致
+
+## 动态 SQL
+```xml
+<!-- ✅ 使用 <where> 自动处理 AND 前缀 -->
+<where>
+    <if test="accountId != null and accountId != ''">
+        AND account_id = #{accountId}
+    </if>
+</where>
+
+<!-- ✅ IN 子句必须判空 -->
+<if test="ids != null and ids.size() > 0">
+    AND id IN
+    <foreach collection="ids" item="id" open="(" separator="," close=")">
+        #{id}
+    </foreach>
+</if>
+```
+
+## INSERT
+- 使用 `useGeneratedKeys="true" keyProperty="id"` 回填主键
+- 时间字段使用 `NOW()` 或由代码传入

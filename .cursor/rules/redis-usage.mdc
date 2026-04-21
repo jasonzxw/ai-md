@@ -1,0 +1,33 @@
+---
+description: Redis 使用规范
+globs: "**/*.java"
+alwaysApply: false
+---
+
+# Redis 使用规范
+
+## Key 管理
+- 所有 Key 必须在 `RedisConstKey`（`com.dingzi.zhimo.common.Redis.RedisConstKey`）中定义
+- 禁止在业务代码中硬编码 Redis Key 字符串
+- Key 命名格式：`业务域:子域:唯一标识`，如 `mini:coin:rank:{accountId}`
+
+## 过期时间
+- 所有缓存必须设置过期时间，禁止永不过期（除明确的全局配置类数据）
+- 常用 TTL 常量定义在 `RedisConstKey` 中
+
+## 异常降级
+```java
+// ❌ Redis 异常中断主流程
+String val = redisTemplate.opsForValue().get(key);
+
+// ✅ 带降级的 Redis 操作
+String val = null;
+try {
+    val = redisTemplate.opsForValue().get(key);
+} catch (Exception e) {
+    log.error("Redis 读取失败, key={}", key, e);
+}
+if (val == null) {
+    // 回源查 DB
+}
+```

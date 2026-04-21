@@ -1,0 +1,26 @@
+---
+description: 项目全局规范 — 技术栈、模块分层、通用约定
+alwaysApply: true
+---
+
+# 项目全局规范
+
+## 技术栈
+- Java 8 + Spring Boot 2.6.x + MyBatis + Redis/Redisson
+- 多模块 Maven 项目，构建时从根 POM 执行
+
+## 模块职责（严格遵守分层）
+
+| 模块 | 职责 | 禁止 |
+|------|------|------|
+| `znzmo-model` | Entity / VO / DTO / ErrorCode / CommonResp | 不放业务逻辑、不依赖 Spring |
+| `znzmo-common` | DAO 接口、Mapper XML、Redis 工具、公共 Service | 不放 Controller |
+| `znzmo-ai` | Controller + 业务 Service + 线程池配置 | 不直接写 SQL |
+| `znzmo-ai-api` | 对外 API 处理链 | — |
+| `znzmo-ai-mq-consumer` | MQ 消费端 Service | 不放 Controller |
+
+## 通用约定
+- 返回值统一使用 `CommonResp<T>` 封装，错误码使用 `ErrorCode` 常量
+- 依赖注入统一使用 `@Resource`（新代码不再使用 `@Autowired`）
+- 日志统一使用 `@Slf4j`（Lombok），禁止 `e.printStackTrace()`
+- 所有回复使用**中文**

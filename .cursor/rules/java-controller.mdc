@@ -1,0 +1,33 @@
+---
+description: Java Controller 层编码规范
+globs: "**/controller/**/*.java"
+alwaysApply: false
+---
+
+# Controller 层规范
+
+## 类注解
+```java
+@Slf4j
+@RestController
+@Api("业务描述")
+@RequestMapping("/路径前缀")
+```
+
+## 方法注解
+- 每个接口必须加 `@ApiOperation(value = "接口描述")`
+- 查询用 `@GetMapping`，写操作用 `@PostMapping`
+- `@RequestBody` 参数加 `@Valid` 校验
+
+## 鉴权模板（每个对外接口必须包含）
+```java
+String accountId = CommonUtils.isEmpty(request.getUserPrincipal())
+    ? AccountId.ACCOUNT_ID : request.getUserPrincipal().getName();
+if (StringUtils.isEmpty(accountId)) {
+    return new CommonResp<>(ErrorCode.SYS_NO_LOGIN);
+}
+```
+
+## 职责边界
+- Controller 只做：参数校验 → 鉴权 → 调 Service → 封装返回
+- 禁止在 Controller 中写业务逻辑、直接操作 DAO 或 Redis

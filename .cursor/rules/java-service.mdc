@@ -1,0 +1,35 @@
+---
+description: Java Service 层编码规范
+globs: "**/service/**/*.java"
+alwaysApply: false
+---
+
+# Service 层规范
+
+## 类定义
+- 使用 `@Service` + `@Slf4j`
+- DAO/其他 Service 注入使用 `@Resource`
+
+## 异常处理
+```java
+// ❌ 禁止
+catch (Exception e) {
+    e.printStackTrace();
+}
+
+// ✅ 正确
+catch (Exception e) {
+    log.error("描述操作上下文, accountId={}", accountId, e);
+    throw new RuntimeException("业务描述失败", e);
+}
+```
+
+## 事务
+- `@Transactional(rollbackFor = Exception.class)` — 必须指定 rollbackFor
+- 事务内禁止调用外部 HTTP/MQ 服务（避免长事务）
+- 事务方法不能被同类内其他方法直接调用（代理失效）
+
+## 空值防护
+- DAO 查询结果使用前必须判空
+- 集合操作前检查 `null` 和 `isEmpty()`
+- 避免链式调用 `obj.getA().getB()`，中间环节可能为 null
